@@ -30,7 +30,7 @@ jobs:
         echo "检查package.json和package-lock.json:"
         ls -la package*.json
         npm ci
-        npm install -g @expo/eas-cli@latest
+        npm install -g eas-cli@latest
         
     - name: 🔧 配置EAS
       working-directory: ./mobile
