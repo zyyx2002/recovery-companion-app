@@ -19,7 +19,7 @@
       "android": {
         "buildType": "apk",
         "image": "latest",
-        "buildToolsVersion": "34.0.0"
+        "buildToolsVersion": "33.0.1"
       }
     },
     "production": {
