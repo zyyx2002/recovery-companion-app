@@ -1,18 +1,15 @@
-name: 🚀 戒断康复APP自动构建
+name: 🚀 戒断康复APP - 简化构建
 
 on:
   push:
-    branches: [ main, develop ]
-    tags: [ 'v*' ]
-  pull_request:
     branches: [ main ]
+    tags: [ 'v*' ]
   workflow_dispatch: # 允许手动触发
 
 env:
   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
 jobs:
-  # 构建Android APK
   build-android:
     name: 📱 构建Android APK
     runs-on: ubuntu-latest
@@ -38,160 +35,51 @@ jobs:
       working-directory: ./mobile
       run: |
         eas login --non-interactive
-        eas project:info
         
-    - name: 🏗️ 构建Android预览版
-      if: github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/')
+    - name: 🏗️ 构建Android APK
       working-directory: ./mobile
       run: |
         eas build --platform android --profile preview --non-interactive --wait
         
-    - name: 🏗️ 构建Android生产版
-      if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
-      working-directory: ./mobile
-      run: |
-        eas build --platform android --profile production --non-interactive --wait
-        
-    - name: 📥 下载构建文件
+    - name: 📥 下载APK文件
       working-directory: ./mobile
       run: |
         # 获取最新构建的下载链接
         BUILD_URL=$(eas build:list --platform android --limit 1 --json | jq -r '.[0].artifacts.buildUrl')
         echo "下载链接: $BUILD_URL"
         
-        # 下载构建文件
-        if [[ $BUILD_URL == *.aab ]]; then
-          curl -L -o app-release.aab "$BUILD_URL"
-          echo "✅ 下载了AAB文件"
-        else
-          curl -L -o app-release.apk "$BUILD_URL"
-          echo "✅ 下载了APK文件"
-        fi
+        # 下载APK文件
+        curl -L -o app-release.apk "$BUILD_URL"
+        echo "✅ APK下载完成"
+        ls -la app-release.apk
         
-    - name: 📤 上传到Artifacts
+    - name: 📤 上传APK到Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: android-build-${{ github.sha }}
-        path: |
-          mobile/app-release.apk
-          mobile/app-release.aab
+        name: android-apk-${{ github.sha }}
+        path: mobile/app-release.apk
         retention-days: 30
         
-    - name: 🚀 发布到Google Play Store
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: r0adkll/upload-google-play@v1.1.3
-      with:
-        serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
-        packageName: com.recoverycompanion.app
-        releaseFiles: mobile/app-release.aab
-        track: production
-        status: completed
-        inAppUpdatePriority: 2
-        userFraction: 1.0
-        whatsNewDirectory: mobile/release-notes/
-        mappingFile: mobile/android/app/build/outputs/mapping/release/mapping.txt
-        
-    - name: 📤 上传到GitHub Release
+    - name: 📤 创建GitHub Release
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          mobile/app-release.apk
-          mobile/app-release.aab
+        files: mobile/app-release.apk
         draft: false
         prerelease: false
-        body_path: mobile/release-notes/zh-CN/default.txt
+        body: |
+          🎉 戒断康复APP新版本发布！
+          
+          📱 **Android APK下载**
+          - 直接下载APK文件安装到Android设备
+          
+          🔧 **版本信息**
+          - 构建时间: ${{ github.event.head_commit.timestamp }}
+          - 提交: ${{ github.sha }}
+          
+          📋 **安装说明**
+          1. 下载APK文件
+          2. 在Android设备上启用"未知来源"安装
+          3. 安装APK文件
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # 构建iOS应用
-  build-ios:
-    name: 🍎 构建iOS应用
-    runs-on: macos-latest
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
-    
-    steps:
-    - name: 📥 检出代码
-      uses: actions/checkout@v4
-      
-    - name: 🟢 设置Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: mobile/package-lock.json
-        
-    - name: 📦 安装依赖
-      working-directory: ./mobile
-      run: |
-        npm ci
-        npm install -g @expo/eas-cli@latest
-        
-    - name: 🔧 配置EAS
-      working-directory: ./mobile
-      run: |
-        eas login --non-interactive
-        eas project:info
-        
-    - name: 🏗️ 构建iOS应用
-      working-directory: ./mobile
-      run: |
-        eas build --platform ios --profile preview --non-interactive --wait
-        
-    - name: 📤 上传iOS应用到Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: ios-app-${{ github.sha }}
-        path: mobile/*.ipa
-        retention-days: 30
-
-  # 部署Web版本
-  deploy-web:
-    name: 🌐 部署Web版本
-    runs-on: ubuntu-latest
-    needs: [build-android]
-    
-    steps:
-    - name: 📥 检出代码
-      uses: actions/checkout@v4
-      
-    - name: 🟢 设置Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: mobile/package-lock.json
-        
-    - name: 📦 安装依赖
-      working-directory: ./mobile
-      run: npm ci
-      
-    - name: 🏗️ 构建Web版本
-      working-directory: ./mobile
-      run: |
-        npm run web:build
-        
-    - name: 🚀 部署到Vercel
-      uses: amondnet/vercel-action@v25
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        working-directory: ./mobile
-        vercel-args: '--prod'
-
-  # 通知构建结果
-  notify:
-    name: 📢 通知构建结果
-    runs-on: ubuntu-latest
-    needs: [build-android, deploy-web]
-    if: always()
-    
-    steps:
-    - name: 📢 发送通知
-      uses: 8398a7/action-slack@v3
-      with:
-        status: ${{ job.status }}
-        channel: '#builds'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-      if: always()
