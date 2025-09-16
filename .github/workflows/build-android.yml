@@ -23,7 +23,7 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: mobile/package-lock.json
+        cache-dependency-path: './mobile/package-lock.json'
         
     - name: 📦 安装依赖
       working-directory: ./mobile
