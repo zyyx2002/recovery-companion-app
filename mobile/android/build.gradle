@@ -19,7 +19,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath('com.android.tools.build:gradle:8.0.2')
+        classpath('com.android.tools.build:gradle:8.2.2')
         classpath('com.facebook.react:react-native-gradle-plugin')
     }
 }
@@ -42,11 +42,5 @@ allprojects {
         google()
         mavenCentral()
         maven { url 'https://www.jitpack.io' }
-    }
-    
-    configurations.all {
-        resolutionStrategy {
-            force 'org.gradle:gradle-core:8.8'
-        }
     }
 }
