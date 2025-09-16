@@ -26,6 +26,9 @@ jobs:
     - name: 📦 安装依赖
       working-directory: ./mobile
       run: |
+        echo "当前目录: $(pwd)"
+        echo "检查package.json和package-lock.json:"
+        ls -la package*.json
         npm ci
         npm install -g @expo/eas-cli@latest
         
