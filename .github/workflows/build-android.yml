@@ -34,8 +34,10 @@ jobs:
         
     - name: 🔧 配置EAS
       working-directory: ./mobile
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       run: |
-        eas login --non-interactive
+        echo "EAS CLI已配置，使用环境变量进行身份验证"
         
     - name: 🏗️ 构建Android APK
       working-directory: ./mobile
