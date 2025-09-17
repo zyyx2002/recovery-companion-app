@@ -1,0 +1,5 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1080" height="1920" fill="#4F46E5"/>
+  <circle cx="540" cy="960" r="200" fill="white"/>
+  <text x="540" y="1000" font-family="Arial, sans-serif" font-size="120" fill="#4F46E5" text-anchor="middle" font-weight="bold">戒断康复助手</text>
+</svg>

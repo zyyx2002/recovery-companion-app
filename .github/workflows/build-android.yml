@@ -1,0 +1,88 @@
+name: 🚀 戒断康复APP - 简化构建
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch: # 允许手动触发
+
+env:
+  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+jobs:
+  build-android:
+    name: 📱 构建Android APK
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 🟢 设置Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: 📦 安装依赖
+      working-directory: ./mobile
+      run: |
+        echo "当前目录: $(pwd)"
+        echo "检查package.json和package-lock.json:"
+        ls -la package*.json
+        npm ci
+        npm install -g eas-cli@latest
+        
+    - name: 🔧 配置EAS
+      working-directory: ./mobile
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      run: |
+        echo "EAS CLI已配置，使用环境变量进行身份验证"
+        
+    - name: 🏗️ 构建Android APK
+      working-directory: ./mobile
+      run: |
+        eas build --platform android --profile preview --non-interactive --wait
+        
+    - name: 📥 下载APK文件
+      working-directory: ./mobile
+      run: |
+        # 获取最新构建的下载链接
+        BUILD_URL=$(eas build:list --platform android --limit 1 --json | jq -r '.[0].artifacts.buildUrl')
+        echo "下载链接: $BUILD_URL"
+        
+        # 下载APK文件
+        curl -L -o app-release.apk "$BUILD_URL"
+        echo "✅ APK下载完成"
+        ls -la app-release.apk
+        
+    - name: 📤 上传APK到Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-apk-${{ github.sha }}
+        path: mobile/app-release.apk
+        retention-days: 30
+        
+    - name: 📤 创建GitHub Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: mobile/app-release.apk
+        draft: false
+        prerelease: false
+        body: |
+          🎉 戒断康复APP新版本发布！
+          
+          📱 **Android APK下载**
+          - 直接下载APK文件安装到Android设备
+          
+          🔧 **版本信息**
+          - 构建时间: ${{ github.event.head_commit.timestamp }}
+          - 提交: ${{ github.sha }}
+          
+          📋 **安装说明**
+          1. 下载APK文件
+          2. 在Android设备上启用"未知来源"安装
+          3. 安装APK文件
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

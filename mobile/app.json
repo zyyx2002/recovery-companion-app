@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "戒断康复助手",
+    "slug": "recovery-companion",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.recoveryapp.companion"
+    },
+    "android": {
+      "package": "com.recoveryapp.companion"
+    },
+    "web": {},
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "34.0.0"
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "3e3f827a-4c94-4e60-9f80-6a81da9b71de"
+      }
+    },
+    "owner": "zyyx2002"
+  }
+}

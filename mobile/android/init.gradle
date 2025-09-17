@@ -1,0 +1,19 @@
+allprojects {
+    repositories {
+        // 使用HTTP避免TLS问题
+        maven { 
+            url 'http://maven.aliyun.com/nexus/content/groups/public/'
+            allowInsecureProtocol = true
+        }
+        maven { 
+            url 'http://maven.aliyun.com/nexus/content/repositories/jcenter/'
+            allowInsecureProtocol = true
+        }
+        // 备用HTTPS仓库
+        maven { url 'https://maven.aliyun.com/repository/google/' }
+        maven { url 'https://maven.aliyun.com/repository/central/' }
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
